@@ -2,23 +2,32 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
+// Create a stable initial message ID
+const getStableMessageId = () => {
+  // Use a fixed value for SSR, then update on client if needed
+  if (typeof window === 'undefined') {
+    return 1;
+  }
+  return Date.now();
+};
+
 export default function AIAssistantPage() {
   const [messages, setMessages] = useState([
     { 
       role: "assistant", 
       text: "Hello! I'm your AI assistant. How can I help you today?", 
       timestamp: new Date(),
-      messageId: Date.now()
+      messageId: 1 // Use stable ID instead of Date.now()
     }
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
-  const [isOnline] = useState(true); 
+  const [isOnline] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
   const chatEndRef = useRef<HTMLDivElement | null>(null);
-  
- 
-  // Check if device is mobile
+  const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "/api";
+
+  // Check if device is mobile - only on client side
   useEffect(() => {
     const checkIsMobile = () => {
       setIsMobile(window.innerWidth <= 768);
@@ -37,15 +46,17 @@ export default function AIAssistantPage() {
   useEffect(() => {
     scrollToBottom();
   }, [messages, loading]);
-  const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:5000/api";
+
   const sendMessage = async () => {
     if (!input.trim()) return;
+    
     const userMessage = { 
       role: "user", 
       text: input, 
       timestamp: new Date(),
-      messageId: Date.now()
+      messageId: Date.now() // This is fine since it's client-side only
     };
+    
     setMessages(prev => [...prev, userMessage]);
     setInput("");
     setLoading(true);
@@ -66,7 +77,7 @@ export default function AIAssistantPage() {
         role: "assistant", 
         text: data.reply, 
         timestamp: new Date(),
-        messageId: Date.now()
+        messageId: Date.now() // This is fine since it's client-side only
       }]);
     } catch (err) {
       console.error("Chat error:", err);
@@ -74,7 +85,7 @@ export default function AIAssistantPage() {
         role: "assistant", 
         text: "Sorry, I'm having trouble connecting right now. Please try again later.", 
         timestamp: new Date(),
-        messageId: Date.now()
+        messageId: Date.now() // This is fine since it's client-side only
       }]);
     } finally {
       setLoading(false);
@@ -82,7 +93,7 @@ export default function AIAssistantPage() {
   };
 
   // Format timestamp
-  const formatTime = (date) => {
+  const formatTime = (date: Date) => {
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
@@ -92,15 +103,14 @@ export default function AIAssistantPage() {
       role: "assistant", 
       text: "Hello! I'm your AI assistant. How can I help you today?", 
       timestamp: new Date(),
-      messageId: Date.now()
+      messageId: 1 // Use stable ID
     }]);
   };
 
   // Copy message to clipboard
-  const copyMessage = (text) => {
+  const copyMessage = (text: string) => {
     navigator.clipboard.writeText(text);
   };
-
   return (
     <div className="fixed inset-0 bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
       {/* Mobile Header - Sticky */}
