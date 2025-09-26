@@ -13,7 +13,7 @@ export default function AIAssistantPage() {
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
-  const [isOnline, setIsOnline] = useState(true);
+  const [isOnline] = useState(true); 
   const [isMobile, setIsMobile] = useState(false);
   const chatEndRef = useRef<HTMLDivElement | null>(null);
   
